@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Friend</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .chat-log {
+            margin-bottom: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .user-message {
+            color: blue;
+            background-color: #e6f7ff; /* Light blue background for user messages */
+            margin-left: 20px;
+        }
+
+        /* Adjust color based on the length of the AI's response */
+        .ai-message {
+            color: orange; /* Gray color for AI messages */
+            background-color: #f2f2f2; /* Light gray background for AI messages */
+            margin-right: 20px;
+        }
+
+        /* Custom color based on text length */
+        .ai-message.short {
+            color: orange; /* Green for short messages */
+        }
+
+        .ai-message.medium {
+            color: orange; /* Orange for medium-length messages */
+        }
+
+        .ai-message.long {
+            color: orange; /* Red for long messages */
+        }
+
+        .input-container {
+            display: flex;
+            margin-top: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            background-color: #4caf50;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h1>myFriend</h1>
+        <div class="chat-log" id="chat-log"></div>
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        function sendMessage() {
+            const userInput = document.getElementById('user-input').value;
+            const chatLog = document.getElementById('chat-log');
+
+            chatLog.innerHTML += `<div class="message user-message"><strong>You:</strong> ${userInput}</div>`;
+
+            fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `message=${encodeURIComponent(userInput)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                const aiResponse = data.response;
+                let aiMessageClass = 'ai-message';
+
+                if (aiResponse.length < 20) {
+                    aiMessageClass += ' short';
+                } else if (aiResponse.length < 50) {
+                    aiMessageClass += ' medium';
+                } else {
+                    aiMessageClass += ' long';
+                }
+
+                chatLog.innerHTML += `<div class="message ${aiMessageClass}"><strong>AI:</strong> ${aiResponse}</div>`;
+            })
+            .catch(error => console.error('Error:', error));
+
+            document.getElementById('user-input').value = '';
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+    </script>
+</body>
+</html>
